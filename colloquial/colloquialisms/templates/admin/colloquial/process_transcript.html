@@ -1,0 +1,60 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %}Process transcript {{ block.super }}{% endblock %}
+{% block extrastyle %}{% endblock %}
+{% block extrahead %}{% endblock %}
+
+{% comment %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo;
+    <a href="{% url 'admin:app_list' app_label='colloquial' %}">Colloquial</a>
+    &rsaquo;
+    <a href="{% url 'admin:colloquial_transcript_changelist' %}">
+      Transcript</a>
+    &rsaquo;
+    Process transcript
+</div>
+{% endblock %}
+{% endcomment %}
+
+{% block content %}
+<div id="content-main">
+  <form action="{{ request.path_info }}" method="post">
+    {% csrf_token %}
+    <h4>Process {{ transcript }}</h4>
+
+    {% if transcript.tags.count %}
+      <p>
+        {{ transcript.tags.count }} existing
+        tag{{ transcript.tags.count|pluralize }}  will be
+        deleted.
+      </p>
+    {% endif %}
+
+    {% if errors %}
+      <p>Errors</p>
+      <ul>
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <p>
+      The following will be created from {{ transcript.get_transcript_file }}:
+    </p>
+    <ul>
+      {% for occ in tags %}
+        <li>{{ occ }}</li>
+      {% endfor %}
+    </ul>
+
+    <p>
+      {# <a href="{% url 'admin:colloquial_transcript_changelist' %}">Cancel</a> #}
+    </p>
+    <input type="submit" value="Process file">
+  </form>
+</div>
+{% endblock %}
