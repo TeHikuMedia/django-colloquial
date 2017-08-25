@@ -17,25 +17,34 @@ class ColloquialismAdmin(admin.ModelAdmin):
 
 
 class BaseTranscriptAdmin(admin.ModelAdmin):
-    def get_process_url_name(self):
-        return '%s_process_%s' % (
-            self.model._meta.app_label, self.model._meta.model_name)
+    def get_url_name(self, view):
+        return '%s_%s_%s' % (
+            self.model._meta.app_label, view, self.model._meta.model_name)
 
     def links(self, obj):
         if not obj.get_transcript_file():
             return ''
 
-        process_url = reverse('admin:%s' % self.get_process_url_name(),
+        process_url = reverse('admin:%s' % self.get_url_name('process'),
                               args=(obj.pk, ))
-        return '<a href="%s">Process</a>' % (process_url)
+        tag_url = reverse('admin:%s' % self.get_url_name('tag'),
+                          args=(obj.pk, ))
+
+        return '<a href="%s">Process</a> | <a href="%s">Tag</a>' % (
+            process_url, tag_url)
+
     links.allow_tags = True
 
     def get_urls(self):
         urls = super(BaseTranscriptAdmin, self).get_urls()
 
-        view = self.admin_site.admin_view(admin_views.process_transcript)
+        process_view = self.admin_site.admin_view(
+            admin_views.process_transcript)
+        tag_view = self.admin_site.admin_view(admin_views.auto_tag_transcript)
 
         return [
-            url(r'^(?P<pk>\d+)/process/$', view, {'item_cls': self.model},
-                self.get_process_url_name())
+            url(r'^(?P<pk>\d+)/process/$', process_view,
+                {'item_cls': self.model}, self.get_url_name('process')),
+            url(r'^(?P<pk>\d+)/tag/$', tag_view, {'item_cls': self.model},
+                self.get_url_name('tag')),
         ] + urls

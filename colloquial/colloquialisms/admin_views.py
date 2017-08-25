@@ -37,3 +37,28 @@ def process_transcript(request, item_cls, pk):
         'tags': tags,
         'errors': errors,
     })
+
+
+def auto_tag_transcript(request, item_cls, pk):
+    transcript = get_object_or_404(item_cls, pk=pk)
+
+    change_view = 'admin:%s_%s_change' % (
+        item_cls._meta.app_label, item_cls._meta.model_name)
+
+    if not transcript.get_transcript_file():
+        msg = 'No transcript file'
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(change_view, transcript.pk)
+
+    if request.method == 'POST':
+        transcript.save_tagged_transcript()
+
+        msg = '%s was updated.' % (transcript.get_transcript_url())
+        messages.add_message(request, messages.INFO, msg)
+
+        return redirect(change_view, transcript.pk)
+
+    return render(request, 'admin/colloquial/tag_transcript.html', {
+        'transcript': transcript,
+        # 'errors': errors,
+    })

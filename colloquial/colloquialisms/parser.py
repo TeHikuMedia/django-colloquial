@@ -7,22 +7,28 @@ import codecs
 
 from pyvtt import WebVTTFile
 
+# match accented vowels as well. Must be contained in a []
+EXTRA_WORD = u'āēīōū'
+MATCH_WORD = u'\w%s' % EXTRA_WORD
 
 # TODO write a proper parser, or use BeautifulSoup, instead of regexes
 # NOTE nested tags are not supported, but they shouldn't be nested anyway
 
 # regular voice spans <v NAME>...</v>
-VOICE_SPAN_RE = re.compile('<v (\w+)>(.+)</v>?',
-                           flags=re.IGNORECASE)
+VOICE_SPAN_RE = re.compile(
+    u'<v ([%s]+)>(.+)</v>?' % MATCH_WORD, flags=re.IGNORECASE)
 
 # special-case voice span where it's at the start and not closed
-INITIAL_VOICE_SPAN_RE = re.compile('^<v (\w+)>\s*', flags=re.IGNORECASE)
+INITIAL_VOICE_SPAN_RE = re.compile(
+    u'^<v ([%s]+)>\s*' % MATCH_WORD, flags=re.IGNORECASE)
 
 # tags - <c.TYPE>...</c>
-TAG_RE = re.compile('<c\.(\w+)>([\w\s]+)</c>', flags=re.IGNORECASE)
+TAG_RE = re.compile(
+    '<c\.(\w+)>([%s\s]+)</c>' % MATCH_WORD, flags=re.IGNORECASE)
 
 # same as above but capture the whole thing
-TAG_RE_FULL = re.compile('(<c\.\w+>[\w\s]+</c>)', flags=re.IGNORECASE)
+TAG_RE_FULL = re.compile(
+    '(<c\.\w+>[%s\s]+</c>)' % MATCH_WORD, flags=re.IGNORECASE)
 
 
 def strip_voice_spans(text):
@@ -53,7 +59,8 @@ def parse_tags(text):
         previous_text = strip_tags(text[:match.start()])
         pos = round(float(len(previous_text)) / stripped_len, 5)
 
-        yield match.groups() + (pos, )
+        tag_type, value = match.groups()
+        yield tag_type, value, pos
 
 
 def get_webvttfile(file_obj):
@@ -63,7 +70,7 @@ def get_webvttfile(file_obj):
     contents = file_obj.read()
 
     # convert to unicode if it's a plain str
-    if not isinstance(contents, unicode):  # NOQA
+    if not isinstance(contents, unicode):
         contents = codecs.decode(contents, 'utf-8')
 
     return WebVTTFile.from_string(contents)
@@ -91,7 +98,8 @@ def parse_transcript(transcript_file, language, valid_types, get_tag,
         for tag_type, value, pos in parse_tags(entry.text):
             if tag_type not in valid_types:
                 # TODO - log error
-                errors.append('Invalid tag type - %s' % tag_type)
+                errors.append('Invalid tag type at %s - %s' % (
+                    entry.start, tag_type))
                 continue
 
             # create the colloquialism entry if it doesn't exist.
@@ -119,9 +127,27 @@ def wrap_tag(text, tag_value, tag_type):
             continue
 
         # otherwise substitute for the tag
+        # word boundaries (\b) don't work with macrons, because they're not
+        # considered part of a word, but using lookaround is really slow.
+        # We use word boundaries to make the match, but also capture the
+        # previous and next characters and check they are not macron characters
+
+        regex = r'(.?)\b(%s)\b(.?)' % tag_value
+        # regex = r'(?<![%s])%s(?![%s])' % (MATCH_WORD, tag_value, MATCH_WORD)
+
+        def sub(match):
+            before, value, after = match.groups()
+
+            # check the characters around it aren't vowels with macrons
+            # return unchanged if so
+            if before in EXTRA_WORD or value in EXTRA_WORD:
+                return match.group()
+
+            return '%s<c.%s>%s</c>%s' % (before, tag_type, value, after)
+
         parts[i] = re.sub(
-            tag_value,
-            lambda m: '<c.%s>%s</c>' % (tag_type, m.group()),
+            regex,
+            sub,
             parts[i])
 
     return ''.join(parts)

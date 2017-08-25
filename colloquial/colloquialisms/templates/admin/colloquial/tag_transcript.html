@@ -1,0 +1,20 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %}Tag transcript {{ block.super }}{% endblock %}
+{% block extrastyle %}{% endblock %}
+{% block extrahead %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <form action="{{ request.path_info }}" method="post">
+    {% csrf_token %}
+    <h4>Tag {{ transcript }}</h4>
+
+    <p>
+      {{ transcript.get_transcript_file }} will be auto-tagged from the
+      colloquialisms database:
+    </p>
+    <input type="submit" value="Tag file">
+  </form>
+</div>
+{% endblock %}

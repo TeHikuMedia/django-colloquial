@@ -13,18 +13,26 @@ from .querysets import ColloquialismQuerySet, TagQuerySet
 
 DEFAULT_LANGUAGE = settings.LANGUAGES[0][0]
 OCCURRENCE_RELATED_NAME = "tags"
+TYPE_CHOICES = [t[:2] for t in settings.COLLOQUIAL_TYPES]
 
 
 @python_2_unicode_compatible
 class Colloquialism(models.Model):
     type = models.CharField(
-        max_length=20, choices=settings.COLLOQUIAL_TYPE_CHOICES, db_index=True,
+        max_length=20, choices=TYPE_CHOICES, db_index=True,
         verbose_name=_('type'))
     language = models.CharField(
-        max_length=20, choices=settings.LANGUAGES, db_index=True,
+        max_length=30, choices=settings.LANGUAGES, db_index=True,
         verbose_name=_('language'), default=DEFAULT_LANGUAGE)
 
+    # TODO consider using django.contrib.postgre.fields.CIText once on django
+    # 1.11. Should also think about a custom case-insensitive unique index for
+    # this field rather than a separate normalised field
+    # Also: https://stackoverflow.com/a/7773515/136010
     value = models.CharField(max_length=200, verbose_name=_('value'))
+    normalised_value = models.CharField(max_length=200, editable=False,
+                                        db_index=True)
+
     meaning = models.TextField(
         blank=True, default='', verbose_name=_('meaning'))
 
@@ -34,13 +42,19 @@ class Colloquialism(models.Model):
 
     objects = ColloquialismQuerySet.as_manager()
 
-    @property
-    def normalised_value(self):
-        # TODO should make this a db field so that the unique index can use it
-        return self.value.lower()
+    @classmethod
+    def normalise_value(cls, value, type):
+        """Normalise value string - currently just lowercase it so that all are
+           case-insensitive; in future some types may be case-sensitive. """
+
+        return value.lower()
+
+    def save(self, *args, **kwargs):
+        self.normalised_value = self.normalise_value(self.value, self.type)
+        return super(Colloquialism, self).save(*args, **kwargs)
 
     class Meta:
-        unique_together = ('type', 'language', 'value', )
+        unique_together = ('type', 'language', 'normalised_value', )
 
     def __str__(self):
         return '%s: %s' % (self.get_type_display(), self.value)
@@ -101,7 +115,7 @@ class AbstractTranscript(object):
 
         from .parser import auto_tag_file
 
-        tags = Colloquialism.objects.all().values('type', 'value')
+        tags = Colloquialism.objects.filter_auto().values('type', 'value')
 
         if output is None:
             output = StringIO()
@@ -120,10 +134,19 @@ class AbstractTranscript(object):
 
         from .parser import parse_transcript
 
-        def get_colloquialism(**kwargs):
-            return Colloquialism.objects.get_or_create(**kwargs)[0]
+        def get_colloquialism(value, language, type):
+            """Get colloquialism by normalised value. """
 
-        valid_types = [t[0] for t in settings.COLLOQUIAL_TYPE_CHOICES]
+            return Colloquialism.objects.get_or_create(
+                language=language,
+                type=type,
+                normalised_value=Colloquialism.normalise_value(value, type),
+                defaults={
+                    'value': value
+                }
+            )[0]
+
+        valid_types = [t[0] for t in settings.COLLOQUIAL_TYPES]
 
         tagged_transcript = self.get_tagged_transcript()
 
@@ -154,6 +177,11 @@ class AbstractTranscript(object):
 
     def to_json(self):
         raise NotImplementedError
+
+    # subclasses may also implement the following methods
+
+    def colloquialism_json(self, colloquialism):
+        return {}
 
     # @classmethod
     # def get_tag_relation(cls):
