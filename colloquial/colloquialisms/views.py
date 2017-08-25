@@ -167,7 +167,7 @@ tag: {
           headline:  publication.headline,
           url:       link to publication with tag in query
           thumbnail: link to thumbnail,
-	        times:     list of time points where tag is used
+          times:     list of time points where tag is used
           urls:      list of urls for those time points where
                      tag is used
         }

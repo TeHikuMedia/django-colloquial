@@ -70,7 +70,7 @@ def get_webvttfile(file_obj):
     contents = file_obj.read()
 
     # convert to unicode if it's a plain str
-    if not isinstance(contents, unicode):
+    if not isinstance(contents, unicode):  # NOQA ignore F821
         contents = codecs.decode(contents, 'utf-8')
 
     return WebVTTFile.from_string(contents)
