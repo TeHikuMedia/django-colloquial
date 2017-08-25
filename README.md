@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/TeHikuMedia/django-colloquial.svg?style=svg)](https://circleci.com/gh/TeHikuMedia/django-colloquial)
 [![codecov](https://codecov.io/gh/TeHikuMedia/django-colloquial/branch/master/graph/badge.svg)](https://codecov.io/gh/TeHikuMedia/django-colloquial)
-
+[![Latest Version](https://img.shields.io/pypi/v/django-colloquial.svg?style=flat)](https://pypi.python.org/pypi/django-colloquial/)
 
 Django-colloquial is an application designed to manage media files and their associated webvtt transcripts, using a custom tag format to cross-link tagged phrases ("colloquialisms") in the text. Features:
 
