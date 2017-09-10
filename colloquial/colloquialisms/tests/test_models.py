@@ -20,7 +20,7 @@ TEST_SETTINGS = {
 
 
 @override_settings(**TEST_SETTINGS)
-class ParserTestCase(TestCase):
+class ModelsTestCase(TestCase):
     def setUp(self):
         self.col_1 = Colloquialism.objects.create(
             pk=1,
