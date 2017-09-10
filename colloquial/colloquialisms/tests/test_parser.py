@@ -184,3 +184,11 @@ class ParserTestCase(TestCase):
 
         self.assertEqual(auto_tagged_content.strip(),
                          file_content_tagged.strip())
+
+    def test_tag_with_comma(self):
+        text = 'Mēnā e hē ana ahau, <c.korerorero>ko pēnei atu au ki a ' \
+            'koutou</c>, <c.korerorero>nā tōku hē, nā tōku hē rawa</c>.'
+
+        tags = [t[1] for t in parse_tags(text)]
+        self.assertEqual(tags, ['ko pēnei atu au ki a koutou',
+                                'nā tōku hē, nā tōku hē rawa'])

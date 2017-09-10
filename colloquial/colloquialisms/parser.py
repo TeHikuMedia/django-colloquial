@@ -24,7 +24,7 @@ INITIAL_VOICE_SPAN_RE = re.compile(
 
 # tags - <c.TYPE>...</c>
 TAG_RE = re.compile(
-    '<c\.(\w+)>([%s\s]+)</c>' % MATCH_WORD, flags=re.IGNORECASE)
+    '<c\.(\w+)>([%s\s,]+)</c>' % MATCH_WORD, flags=re.IGNORECASE)
 
 # same as above but capture the whole thing
 TAG_RE_FULL = re.compile(
