@@ -51,5 +51,4 @@ class ModelsTestCase(TestCase):
         self.assertEqual(list(auto), [self.col_1, self.col_2])
 
     def test_normalisation(self):
-        col = Colloquialism.objects.create(type='type_1', value='Test Title')
-        self.assertEqual(col.normalised_value, 'test title')
+        self.assertEqual(self.col_1.normalised_value, 'colloquialism 1')
