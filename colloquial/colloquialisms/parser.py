@@ -140,7 +140,9 @@ def wrap_tag(text, tag_value, tag_type):
 
             # check the characters around it aren't vowels with macrons
             # return unchanged if so
-            if before in EXTRA_WORD or value in EXTRA_WORD:
+            # NOTE before/after may be empty strings
+            if before and before in EXTRA_WORD or \
+                    after and after in EXTRA_WORD:
                 return match.group()
 
             return '%s<c.%s>%s</c>%s' % (before, tag_type, value, after)
