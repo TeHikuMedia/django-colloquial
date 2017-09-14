@@ -142,7 +142,7 @@ def wrap_tag(text, tag_value, tag_type):
             # check the characters around it aren't vowels with macrons
             # return unchanged if so
             # NOTE before/after may be empty strings
-            if before and WORD_RE.match(before) \
+            if before and WORD_RE.match(before) or \
                     after and WORD_RE.match(after):
                 return match.group()
 
