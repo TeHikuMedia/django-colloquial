@@ -177,6 +177,16 @@ class ParserTestCase(TestCase):
         ))
         self.assertEqual(auto_tag_text(plain, tags), plain)
 
+    def test_punctuation(self):
+        """Check it correctly tags words with adjacent punctuation. """
+
+        plain = 'te "rawa koe e" ne'
+        tagged = 'te "<c.kirehu>rawa</c> koe e" ne'
+        tags = process_tag_list((
+            ('kirehu', 'rawa'),
+        ))
+        self.assertEqual(auto_tag_text(plain, tags), tagged)
+
     def test_auto_tag_no_double(self):
         """Check that existing tags are not rewrapped, and their contents
            is not touched. """
