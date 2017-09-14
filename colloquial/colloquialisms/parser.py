@@ -8,20 +8,20 @@ import codecs
 from pyvtt import WebVTTFile
 
 # match accented vowels as well. Must be contained in a []
-EXTRA_WORD = u'āēīōū'
-MATCH_WORD = u'\w%s' % EXTRA_WORD
-WORD_RE = re.compile(MATCH_WORD)
+EXTRA_WORD = 'āēīōū'
+MATCH_WORD = '\w%s' % EXTRA_WORD
+WORD_RE = re.compile('[%s]' % MATCH_WORD)
 
 # TODO write a proper parser, or use BeautifulSoup, instead of regexes
 # NOTE nested tags are not supported, but they shouldn't be nested anyway
 
 # regular voice spans <v NAME>...</v>
 VOICE_SPAN_RE = re.compile(
-    u'<v ([%s]+)>(.+)</v>?' % MATCH_WORD, flags=re.IGNORECASE)
+    '<v ([%s]+)>(.+)</v>?' % MATCH_WORD, flags=re.IGNORECASE)
 
 # special-case voice span where it's at the start and not closed
 INITIAL_VOICE_SPAN_RE = re.compile(
-    u'^<v ([%s]+)>\s*' % MATCH_WORD, flags=re.IGNORECASE)
+    '^<v ([%s]+)>\s*' % MATCH_WORD, flags=re.IGNORECASE)
 
 # tags - <c.TYPE>...</c>
 TAG_RE = re.compile(
