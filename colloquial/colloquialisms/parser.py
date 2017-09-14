@@ -10,6 +10,7 @@ from pyvtt import WebVTTFile
 # match accented vowels as well. Must be contained in a []
 EXTRA_WORD = u'āēīōū'
 MATCH_WORD = u'\w%s' % EXTRA_WORD
+WORD_RE = re.compile(MATCH_WORD)
 
 # TODO write a proper parser, or use BeautifulSoup, instead of regexes
 # NOTE nested tags are not supported, but they shouldn't be nested anyway
@@ -141,8 +142,8 @@ def wrap_tag(text, tag_value, tag_type):
             # check the characters around it aren't vowels with macrons
             # return unchanged if so
             # NOTE before/after may be empty strings
-            if before and before in EXTRA_WORD or \
-                    after and after in EXTRA_WORD:
+            if before and WORD_RE.match(before) \
+                    after and WORD_RE.match(after):
                 return match.group()
 
             return '%s<c.%s>%s</c>%s' % (before, tag_type, value, after)
