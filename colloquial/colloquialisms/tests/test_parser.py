@@ -195,7 +195,7 @@ class ParserTestCase(TestCase):
         tags = process_tag_list((
             ('kupuake', 'rawa'),
         ))
-        self.assertEqual(auto_tag_text(plain, tags), tagged)        
+        self.assertEqual(auto_tag_text(plain, tags), tagged)
 
     def test_case_in_database(self):
         """Check it tags words regardless of case in database. """
@@ -205,7 +205,7 @@ class ParserTestCase(TestCase):
         tags = process_tag_list((
             ('kupuake', 'Rawa'),
         ))
-        self.assertEqual(auto_tag_text(plain, tags), tagged)  
+        self.assertEqual(auto_tag_text(plain, tags), tagged)
 
     def test_auto_tag_no_double(self):
         """Check that existing tags are not rewrapped, and their contents
