@@ -160,6 +160,13 @@ class ParserTestCase(TestCase):
 
         self.assertEqual(auto_tag_text(plain, tags), tagged)
 
+        plain = 'takoto nei te kōhatu nei, nē?'
+        tags = process_tag_list((
+            ('kirehu', 'kō'),
+        ))
+
+        self.assertEqual(auto_tag_text(plain, tags), plain)
+
     def test_word_boundary_macron(self):
         """Check it doesn't auto-tag sub-words where a macron could be
            confused for a word boundary. """
