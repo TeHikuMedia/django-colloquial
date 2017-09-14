@@ -151,7 +151,8 @@ def wrap_tag(text, tag_value, tag_type):
         parts[i] = re.sub(
             regex,
             sub,
-            parts[i])
+            parts[i],
+            flags=re.IGNORECASE)
 
     return ''.join(parts)
 
