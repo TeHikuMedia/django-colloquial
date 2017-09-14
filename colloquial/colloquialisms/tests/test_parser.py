@@ -187,6 +187,26 @@ class ParserTestCase(TestCase):
         ))
         self.assertEqual(auto_tag_text(plain, tags), tagged)
 
+    def test_case_in_text(self):
+        """Check it tags words regardless of case in text. """
+
+        plain = 'te Rawa koe e nei'
+        tagged = 'te <c.kupuake>Rawa</c> koe e nei'
+        tags = process_tag_list((
+            ('kupuake', 'rawa'),
+        ))
+        self.assertEqual(auto_tag_text(plain, tags), tagged)        
+
+    def test_case_in_database(self):
+        """Check it tags words regardless of case in database. """
+
+        plain = 'te rawa koe e nei'
+        tagged = 'te <c.kupuake>rawa</c> koe e nei'
+        tags = process_tag_list((
+            ('kupuake', 'Rawa'),
+        ))
+        self.assertEqual(auto_tag_text(plain, tags), tagged)  
+
     def test_auto_tag_no_double(self):
         """Check that existing tags are not rewrapped, and their contents
            is not touched. """
