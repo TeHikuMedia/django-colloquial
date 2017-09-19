@@ -86,7 +86,11 @@ Rapihana</c>, i tuku mai hei tūnga whare mō te <c.ingoatupuna>Ngārama
 
 3
 00:00:21.000 --> 00:00:24.000
-Te Maru</c> i tuku mai hei tūnga whare mō te <c.kainga>Panguru</c>"""
+i tuku <c.kainga>Panguru</c> mai hei tūnga <c.ingoatupuna>Ngārama
+
+4
+00:00:24.000 --> 00:00:28.000
+Te Maru</c> i tuku <c.iwihapu>Te Rārawa</c>"""
 
 
 # first_item_text = 'taua wāhi rā, nā ōku mātua, ā, ' \
@@ -176,7 +180,7 @@ class ParserTestCase(TestCase):
         # get_tag and get_colloquialism return placeholder values
 
         def get_tag(start, start_exact, colloquialism):
-            return (colloquialism, start.microseconds)
+            return (colloquialism, start.seconds)
 
         def get_colloquialism(type, language, value):
             return value
@@ -187,8 +191,9 @@ class ParserTestCase(TestCase):
         self.assertEqual(tags, [
             (u'Ng\u0101rama Te Maru', 0),
             (u'Matire Rapihana', 0),
-            (u'Ng\u0101rama Te Maru', 0),
-            (u'Panguru', 0),
+            (u'Panguru', 21),
+            (u'Ng\u0101rama Te Maru', 21),
+            (u'Te R\u0101rawa', 24),
         ])
 
     def test_wrap_tag(self):
