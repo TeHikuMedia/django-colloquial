@@ -34,6 +34,8 @@ TAG_RE_FULL = re.compile(
 # match any text before the first closing tag
 TAG_CLOSE_RE = re.compile(r'^(.*)</c>')
 
+TAG_CLOSE_LEN = 4
+
 
 def strip_voice_spans(text):
     return INITIAL_VOICE_SPAN_RE.sub(
@@ -225,8 +227,29 @@ def auto_tag_file(file_obj, tags, output):
 
     webvtt = get_webvttfile(file_obj)
 
+    previous = None
     for item in webvtt:
         item.text = auto_tag_text(item.text, tags)
+
+        # TODO check that the end of the previous item's text (after any tags)
+        # and the beginning of this one don't contain anything that should be
+        # auto tagged
+        if previous:
+            prev_split = TAG_RE_FULL.split(previous.text)
+            current_split = TAG_RE_FULL.split(item.text)
+            span = '%s %s' % (prev_split[-1], current_split[0])
+            tagged = auto_tag_text(span, tags)
+            if len(tagged) > len(span):
+                # assume only one item has been tagged, and determine where to
+                # split the text based on the lengths of the original text and
+                # the assumed addition of a closing tag to the second part
+                current_len = len(current_split[0]) + TAG_CLOSE_LEN
+                prev_split[-1] = tagged[:-current_len]
+                current_split[0] = tagged[-current_len:]
+                previous.text = ''.join(prev_split).strip()
+                item.text = ''.join(current_split).strip()
+
+        previous = item
 
     webvtt.write_into(output, include_indexes=True)
     return output
