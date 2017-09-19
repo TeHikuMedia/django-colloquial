@@ -24,6 +24,7 @@ class Colloquialism(models.Model):
     language = models.CharField(
         max_length=30, choices=settings.LANGUAGES, db_index=True,
         verbose_name=_('language'), default=DEFAULT_LANGUAGE)
+    allow_auto_tag = models.BooleanField(default=True)
 
     # TODO consider using django.contrib.postgre.fields.CIText once on django
     # 1.11. Should also think about a custom case-insensitive unique index for

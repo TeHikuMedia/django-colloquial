@@ -18,7 +18,7 @@ class ColloquialismQuerySet(models.QuerySet):
             .annotate(count=models.Count('pk')).filter(count__gt=1) \
             .values_list('normalised_value', flat=True)
 
-        return self.filter(type__in=auto_types) \
+        return self.filter(type__in=auto_types, allow_auto_tag=True) \
             .exclude(normalised_value__in=duplicates)
 
 
