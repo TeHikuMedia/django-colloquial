@@ -144,35 +144,35 @@ class ParserTestCase(TestCase):
         self.assertEqual(webvtt[0].text, first_item_text)
         self.assertEqual(webvtt[2].text, third_item_text)
 
-    def test_parse_tags_that_span_two_cues_when_cues_joined(self):
-        file_content_plain = """WEBVTT
-
-1
-00:00:00.000 --> 00:00:15.123
-taua wāhi rā, nā ōku mātua, ā, <c.ingoatupuna>Ngārama Te Maru</c> me tana wahine <c.ingoatupuna>Matire
-
-2
-00:00:16.000 --> 00:00:20.456
-Rapihana</c>, i tuku mai hei tūnga whare mō te kāinga"""
-
-        first_item_text = 'taua wāhi rā, nā ōku mātua, ā, ' \
-                          '<c.ingoatupuna>Ngārama Te Maru</c> me tana '\
-                          'wahine <c.ingoatupuna>Matire'
-
-        second_item_text = 'Rapihana</c>, i tuku mai hei ' \
-                           'tūnga whare mō te kāinga'
-
-        first_item_tags = [
-            ('ingoatupuna', 'Ngārama Te Maru', 0),
-            ('ingoatupuna', 'Matire Rapihana', 0),
-        ]
-        #  Here the cue that starts the tag owns the tag.
-
-        second_item_tags = []
-
-        self.assertEqual(list(parse_tags(' '.join([
-                first_item_text, second_item_text
-            ])), list(first_item_tags+second_item_tags))        
+#    def test_parse_tags_that_span_cues(self):
+#         file_content_plain = """WEBVTT
+#
+# 1
+# 00:00:00.000 --> 00:00:15.123
+# taua wāhi rā, nā ōku mātua, ā, <c.ingoatupuna>Ngārama Te Maru</c> me tana wahine <c.ingoatupuna>Matire
+#
+# 2
+# 00:00:16.000 --> 00:00:20.456
+# Rapihana</c>, i tuku mai hei tūnga whare mō te kāinga"""
+#
+#         first_item_text = 'taua wāhi rā, nā ōku mātua, ā, ' \
+#                           '<c.ingoatupuna>Ngārama Te Maru</c> me tana '\
+#                           'wahine <c.ingoatupuna>Matire'
+#
+#         second_item_text = 'Rapihana</c>, i tuku mai hei ' \
+#                            'tūnga whare mō te kāinga'
+#
+#         first_item_tags = [
+#             ('ingoatupuna', 'Ngārama Te Maru', 0),
+#             ('ingoatupuna', 'Matire Rapihana', 0),
+#         ]
+#         #  Here the cue that starts the tag owns the tag.
+#
+#         second_item_tags = []
+#
+#         self.assertEqual(list(parse_tags(' '.join([
+#                 first_item_text, second_item_text
+#             ])), list(first_item_tags+second_item_tags)))
 
     def test_parse_transcript(self):
         file_obj = StringIO(file_content_tagged)
@@ -193,6 +193,26 @@ Rapihana</c>, i tuku mai hei tūnga whare mō te kāinga"""
             (u'Hohepa Tipene', 92000),
             (u'Te R\u0101rawa', 92000),
             (u'Panguru', 681000)
+        ])
+
+    def test_parse_transcript_span_cues(self):
+        file_obj = StringIO(file_content_span_cues)
+        valid_types = [t[0] for t in test_settings['COLLOQUIAL_TYPES']]
+
+        # get_tag and get_colloquialism return placeholder values
+
+        def get_tag(start, start_exact, colloquialism):
+            return (colloquialism, start.microseconds)
+
+        def get_colloquialism(type, language, value):
+            return value
+
+        tags, errors = parse_transcript(file_obj, 'en', valid_types, get_tag,
+                                        get_colloquialism)
+
+        self.assertEqual(tags, [
+            (u'Ng\u0101rama Te Maru', 0),
+            (u'Matire Rapihana', 0),
         ])
 
     def test_wrap_tag(self):
