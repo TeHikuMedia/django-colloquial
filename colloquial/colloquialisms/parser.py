@@ -25,11 +25,14 @@ INITIAL_VOICE_SPAN_RE = re.compile(
 
 # tags - <c.TYPE>...</c>
 TAG_RE = re.compile(
-    '<c\.(\w+)>([%s\s,]+)</c>' % MATCH_WORD, flags=re.IGNORECASE)
+    '<c\.(\w+)>([%s\s,]+)(</c>)?' % MATCH_WORD, flags=re.IGNORECASE)
 
 # same as above but capture the whole thing
 TAG_RE_FULL = re.compile(
     '(<c\.\w+>[%s\s]+</c>)' % MATCH_WORD, flags=re.IGNORECASE)
+
+# match any text before the first closing tag
+TAG_CLOSE_RE = re.compile(r'^(.*)</c>')
 
 
 def strip_voice_spans(text):
@@ -42,8 +45,8 @@ def strip_tags(text):
 
 
 def parse_tags(text):
-    """Yield (type, value, pos) tuples for a string of text containing tags,
-       i.e.
+    """Yield (type, value, pos, closed) tuples for a string of text containing
+       tags, i.e.
 
        <c.tagtype>tag value</c>
 
@@ -60,8 +63,9 @@ def parse_tags(text):
         previous_text = strip_tags(text[:match.start()])
         pos = round(float(len(previous_text)) / stripped_len, 5)
 
-        tag_type, value = match.groups()
-        yield tag_type, value, pos
+        tag_type, value, closed = match.groups()
+
+        yield tag_type, value, pos, bool(closed)
 
 
 def get_webvttfile(file_obj):
@@ -91,10 +95,41 @@ def parse_transcript(transcript_file, language, valid_types, get_tag,
 
     errors = []
     tags = []
+
+    unclosed = None
+
+    def create_tag(tag_type, value, start, start_exact):
+        # create the colloquialism entry if it doesn't exist.
+        colloquialism = get_colloquialism(
+            value=value, language=language, type=tag_type)
+
+        start_exact = start + timedelta(milliseconds=int(length * pos))
+        tag = get_tag(
+            start=start, start_exact=start_exact,
+            colloquialism=colloquialism)
+        tags.append(tag)
+
     for entry in webvttfile:
         # convert WebVTTTime to timedelta
         start = timedelta(milliseconds=entry.start.ordinal)
         length = entry.end.ordinal - entry.start.ordinal
+
+        # if there's a leftover unclosed tag, check if it's closed at the
+        # start of the next entry
+        if unclosed:
+            # get text preceding any other tags
+            pre_tag_text = TAG_RE.split(entry.text)[0]
+
+            # look for a closing tag, and capture any text before it
+            match = TAG_CLOSE_RE.match(pre_tag_text)
+
+            if match:
+                # append the extra content to the unclosed tag
+                unclosed['value'] = '%s %s' % (
+                    unclosed['value'], match.groups()[0])
+
+                create_tag(**unclosed)
+                unclosed = None
 
         for tag_type, value, pos, closed in parse_tags(entry.text):
             if tag_type not in valid_types:
@@ -103,15 +138,20 @@ def parse_transcript(transcript_file, language, valid_types, get_tag,
                     entry.start, tag_type))
                 continue
 
-            # create the colloquialism entry if it doesn't exist.
-            colloquialism = get_colloquialism(
-                value=value, language=language, type=tag_type)
-
             start_exact = start + timedelta(milliseconds=int(length * pos))
-            tag = get_tag(
-                start=start, start_exact=start_exact,
-                colloquialism=colloquialism)
-            tags.append(tag)
+            tag_details = {
+                'tag_type': tag_type,
+                'value': value,
+                'start': start,
+                'start_exact': start_exact,
+            }
+
+            if closed:
+                create_tag(**tag_details)
+                unclosed = None
+            else:
+                # save the details for the next iteration of the outer loop
+                unclosed = tag_details
 
     return tags, errors
 
