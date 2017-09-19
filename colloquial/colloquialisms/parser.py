@@ -96,7 +96,7 @@ def parse_transcript(transcript_file, language, valid_types, get_tag,
         start = timedelta(milliseconds=entry.start.ordinal)
         length = entry.end.ordinal - entry.start.ordinal
 
-        for tag_type, value, pos in parse_tags(entry.text):
+        for tag_type, value, pos, closed in parse_tags(entry.text):
             if tag_type not in valid_types:
                 # TODO - log error
                 errors.append('Invalid tag type at %s - %s' % (

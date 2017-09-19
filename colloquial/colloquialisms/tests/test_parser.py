@@ -62,14 +62,14 @@ He kaumatua no roto o Te Rārawa. I tupu ake i te reo o
 te kainga."""
 
 first_item_tags = [
-    ('tangata', 'Hohepa Tipene', 0.02703),
-    ('iwihapu', 'Te Rārawa', 0.61261),
+    ('tangata', 'Hohepa Tipene', 0.02703, True),
+    ('iwihapu', 'Te Rārawa', 0.61261, True),
 ]
 
 second_item_text = 'Nō hea tērā ingoa <c.kainga>Panguru</c>?</v>'
 second_item_stripped = 'Nō hea tērā ingoa Panguru?</v>'
 second_item_tags = [
-    ('kainga', 'Panguru', 0),
+    ('kainga', 'Panguru', 0, True),
 ]
 
 third_item_text = """<v Hohepa>E pēnei pea tāku kōrero ki a koe."""
@@ -82,7 +82,11 @@ taua wāhi rā, nā ōku mātua, ā, <c.ingoatupuna>Ngārama Te Maru</c> me tana
 
 2
 00:00:16.000 --> 00:00:20.456
-Rapihana</c>, i tuku mai hei tūnga whare mō te kāinga"""
+Rapihana</c>, i tuku mai hei tūnga whare mō te <c.ingoatupuna>Ngārama
+
+3
+00:00:21.000 --> 00:00:24.000
+Te Maru</c> i tuku mai hei tūnga whare mō te <c.kainga>Panguru</c>"""
 
 
 # first_item_text = 'taua wāhi rā, nā ōku mātua, ā, ' \
@@ -144,36 +148,6 @@ class ParserTestCase(TestCase):
         self.assertEqual(webvtt[0].text, first_item_text)
         self.assertEqual(webvtt[2].text, third_item_text)
 
-#    def test_parse_tags_that_span_cues(self):
-#         file_content_plain = """WEBVTT
-#
-# 1
-# 00:00:00.000 --> 00:00:15.123
-# taua wāhi rā, nā ōku mātua, ā, <c.ingoatupuna>Ngārama Te Maru</c> me tana wahine <c.ingoatupuna>Matire
-#
-# 2
-# 00:00:16.000 --> 00:00:20.456
-# Rapihana</c>, i tuku mai hei tūnga whare mō te kāinga"""
-#
-#         first_item_text = 'taua wāhi rā, nā ōku mātua, ā, ' \
-#                           '<c.ingoatupuna>Ngārama Te Maru</c> me tana '\
-#                           'wahine <c.ingoatupuna>Matire'
-#
-#         second_item_text = 'Rapihana</c>, i tuku mai hei ' \
-#                            'tūnga whare mō te kāinga'
-#
-#         first_item_tags = [
-#             ('ingoatupuna', 'Ngārama Te Maru', 0),
-#             ('ingoatupuna', 'Matire Rapihana', 0),
-#         ]
-#         #  Here the cue that starts the tag owns the tag.
-#
-#         second_item_tags = []
-#
-#         self.assertEqual(list(parse_tags(' '.join([
-#                 first_item_text, second_item_text
-#             ])), list(first_item_tags+second_item_tags)))
-
     def test_parse_transcript(self):
         file_obj = StringIO(file_content_tagged)
         valid_types = [t[0] for t in test_settings['COLLOQUIAL_TYPES']]
@@ -213,6 +187,8 @@ class ParserTestCase(TestCase):
         self.assertEqual(tags, [
             (u'Ng\u0101rama Te Maru', 0),
             (u'Matire Rapihana', 0),
+            (u'Ng\u0101rama Te Maru', 0),
+            (u'Panguru', 0),
         ])
 
     def test_wrap_tag(self):
