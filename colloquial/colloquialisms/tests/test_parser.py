@@ -78,7 +78,7 @@ file_content_span_cues = """WEBVTT
 
 1
 00:00:00.000 --> 00:00:15.123
-taua wāhi rā, nā ōku mātua, ā, <c.ingoatupuna>Ngārama Te Maru</c> me tana wahine <c.ingoatupuna>Matire
+taua <c.ingoatupuna>Ngārama Te Maru</c> me tana wahine <c.ingoatupuna>Matire
 
 2
 00:00:16.000 --> 00:00:20.456
