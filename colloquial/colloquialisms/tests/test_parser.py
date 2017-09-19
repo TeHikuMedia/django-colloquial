@@ -6,11 +6,16 @@ from django.test import TestCase, override_settings
 from pyvtt import WebVTTFile
 
 from ..parser import strip_tags, parse_tags, strip_voice_spans, \
-    get_webvttfile, wrap_tag, auto_tag_text, auto_tag_file
+    get_webvttfile, wrap_tag, auto_tag_text, auto_tag_file, parse_transcript
 
 
 test_settings = {
-    'COLLOQUIAL_TYPES': [],
+    'COLLOQUIAL_TYPES': [
+        ('tangata', 'tangata', True),
+        ('iwihapu', 'iwihapu', True),
+        ('kainga', 'kainga', True),
+        ('ingoatupuna', 'ingoatupuna', True),
+    ],
 }
 
 file_content_plain = """WEBVTT
@@ -68,6 +73,34 @@ second_item_tags = [
 ]
 
 third_item_text = """<v Hohepa>E pēnei pea tāku kōrero ki a koe."""
+
+file_content_span_cues = """WEBVTT
+
+1
+00:00:00.000 --> 00:00:15.123
+taua wāhi rā, nā ōku mātua, ā, <c.ingoatupuna>Ngārama Te Maru</c> me tana wahine <c.ingoatupuna>Matire
+
+2
+00:00:16.000 --> 00:00:20.456
+Rapihana</c>, i tuku mai hei tūnga whare mō te kāinga"""
+
+
+# first_item_text = 'taua wāhi rā, nā ōku mātua, ā, ' \
+#                   '<c.ingoatupuna>Ngārama Te Maru</c> me tana '\
+#                   'wahine <c.ingoatupuna>Matire'
+#
+# second_item_text = 'Rapihana</c>, i tuku mai hei ' \
+#                    'tūnga whare mō te kāinga'
+#
+# first_item_tags = [
+#     ('ingoatupuna', 'Ngārama Te Maru', 0),
+#     ('ingoatupuna', 'Matire Rapihana', 0),
+# ]
+# #  Here the cue that starts the tag owns the tag.
+#
+# second_item_tags = []
+#
+# print
 
 
 def process_tag_list(tags):
@@ -142,8 +175,25 @@ Rapihana</c>, i tuku mai hei tūnga whare mō te kāinga"""
             ])), list(first_item_tags+second_item_tags))        
 
     def test_parse_transcript(self):
-        # TODO
-        pass
+        file_obj = StringIO(file_content_tagged)
+        valid_types = [t[0] for t in test_settings['COLLOQUIAL_TYPES']]
+
+        # get_tag and get_colloquialism return placeholder values
+
+        def get_tag(start, start_exact, colloquialism):
+            return (colloquialism, start.microseconds)
+
+        def get_colloquialism(type, language, value):
+            return value
+
+        tags, errors = parse_transcript(file_obj, 'en', valid_types, get_tag,
+                                        get_colloquialism)
+
+        self.assertEqual(tags, [
+            (u'Hohepa Tipene', 92000),
+            (u'Te R\u0101rawa', 92000),
+            (u'Panguru', 681000)
+        ])
 
     def test_wrap_tag(self):
         text = 'Ko Hohepa tēnei, Hohepa Tipene nei. Hohepa Tipene'
