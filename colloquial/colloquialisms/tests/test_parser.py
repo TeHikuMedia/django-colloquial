@@ -92,6 +92,26 @@ i tuku <c.kainga>Panguru</c> mai hei tūnga <c.ingoatupuna>Ngārama
 00:00:24.000 --> 00:00:28.000
 Te Maru</c> i tuku <c.iwihapu>Te Rārawa</c>"""
 
+file_content_span_cues_plain = """WEBVTT
+
+1
+00:00:00.000 --> 00:00:15.123
+taua Panguru, nā ōku Hohepa
+
+2
+00:00:16.000 --> 00:00:20.456
+Tipene, i tuku mai Te Rārawa ne"""
+
+file_content_span_cues_auto_tagged = """WEBVTT
+
+1
+00:00:00.000 --> 00:00:15.123
+taua <c.kainga>Panguru</c>, nā ōku <c.tangata>Hohepa
+
+2
+00:00:16.000 --> 00:00:20.456
+Tipene</c>, i tuku mai <c.iwihapu>Te Rārawa</c> ne"""
+
 
 # first_item_text = 'taua wāhi rā, nā ōku mātua, ā, ' \
 #                   '<c.ingoatupuna>Ngārama Te Maru</c> me tana '\
@@ -312,6 +332,17 @@ class ParserTestCase(TestCase):
 
         self.assertEqual(auto_tagged_content.strip(),
                          file_content_tagged.strip())
+
+    def test_auto_tag_file_span_cues(self):
+        file_obj = StringIO(file_content_span_cues_plain)
+        all_tags = process_tag_list(first_item_tags + second_item_tags)
+        tagged_file_obj = auto_tag_file(file_obj, all_tags, StringIO())
+
+        tagged_file_obj.seek(0)
+        auto_tagged_content = tagged_file_obj.read()
+
+        self.assertEqual(auto_tagged_content.strip(),
+                         file_content_span_cues_auto_tagged.strip())
 
     def test_tag_with_comma(self):
         text = 'Mēnā e hē ana ahau, <c.korerorero>ko pēnei atu au ki a ' \
